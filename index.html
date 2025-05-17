@@ -3,218 +3,546 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dual‑Semester Grades Calculator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <title>Dual-Semester Grades Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
   <style>
+    /* Confetti animation */
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      animation: confetti-fall 2s linear forwards;
+      z-index: 9999;
+    }
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100vh) rotate(0deg); }
+      100% { transform: translateY(100vh) rotate(360deg); }
+    }
+
+    /* Status text colors */
+    .status-pass { color: #2ecc71 !important; }
+    .status-fail { color: #e74c3c !important; }
+
     /* ===== Base ===== */
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
-    body.light-mode { background: linear-gradient(135deg,#2ebf91,#8360c3); color:#222; }
-    body.dark-mode  { background:#121212; color:#ddd; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body.light-mode {
+      background: linear-gradient(135deg, #2ebf91, #8360c3);
+      color: #222;
+    }
+    body.dark-mode {
+      background: #121212;
+      color: #ddd;
+    }
     .container {
-      max-width:700px; width:95%; margin:20px auto;
-      background:rgba(255,255,255,0.95); border-radius:12px;
-      padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.2);
-      transition:background .3s,color .3s;
+      max-width: 700px;
+      width: 95%;
+      margin: 20px auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: background 0.3s, color 0.3s;
+      animation: fadeIn 0.4s ease;
     }
     body.dark-mode .container {
-      background:#1e1e1e; box-shadow:0 4px 12px rgba(0,0,0,0.8);
+      background: #1e1e1e;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
     }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
-    .container { animation:fadeIn .4s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-    header { text-align:center; margin-bottom:15px; }
-    header h1 { font-size:1.8rem; margin-bottom:8px; }
+    header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
     .toggles {
-      display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
     }
     .tab-btn, .toggle-btn {
-      display:inline-flex; align-items:center; gap:6px;
-      padding:8px 12px; border:none; border-radius:6px; cursor:pointer;
-      font-size:1rem; transition:background .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+      user-select: none;
     }
-    .tab-btn { background:#ddd; color:#333; flex:1 1 120px; text-align:center; }
-    .tab-btn.active { background:#2ebf91; color:#fff; }
-    .toggle-btn { background:#2ebf91; color:#fff; }
-    .toggle-btn:hover { background:#239d77; }
-
-    /* Tooltip */
-    .tooltip {
-      position:relative; display:inline-block; cursor:help; margin-left:4px;
+    .tab-btn {
+      background: #ddd;
+      color: #333;
+      flex: 1 1 120px;
+      text-align: center;
     }
-    .tooltip .tiptext {
-      visibility:hidden; width:200px; background:#333; color:#fff;
-      text-align:left; padding:8px; border-radius:6px;
-      position:absolute; z-index:1; bottom:125%; left:50%; transform:translateX(-50%);
-      opacity:0; transition:opacity .2s; font-size:.85rem;
+    .tab-btn.active {
+      background: #2ebf91;
+      color: #fff;
     }
-    .tooltip:hover .tiptext,
-    .tooltip:focus .tiptext {
-      visibility:visible; opacity:1;
+    .toggle-btn {
+      background: #2ebf91;
+      color: #fff;
+    }
+    .toggle-btn:hover {
+      background: #239d77;
     }
 
     /* Table & Inputs */
-    .table-wrap { overflow-x:auto; margin-bottom:15px; }
-    table { width:100%; min-width:500px; border-collapse:collapse; }
-    th, td {
-      border:1px solid #ccc; text-align:center; padding:10px; transition:background .2s;
+    .table-wrap {
+      overflow-x: auto;
+      margin-bottom: 15px;
     }
-    th { background:#f0f0f0; font-weight:600; }
-    body.dark-mode th { background:#333; color:#eee; }
+    table {
+      width: 100%;
+      min-width: 500px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      text-align: center;
+      padding: 10px;
+      transition: background 0.2s;
+    }
+    th {
+      background: #f0f0f0;
+      font-weight: 600;
+    }
+    body.dark-mode th {
+      background: #333;
+      color: #eee;
+    }
     td input {
-      width:90%; padding:8px; font-size:1rem;
-      border:1px solid #aaa; border-radius:4px; text-align:center;
-      background:#fafafa; transition:background .2s,border .2s;
+      width: 90%;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      text-align: center;
+      background: #fafafa;
+      transition: background 0.2s, border 0.2s;
     }
     body.dark-mode td input {
-      background:#2a2a2a; color:#eee; border:1px solid #555;
+      background: #2a2a2a;
+      color: #eee;
+      border: 1px solid #555;
     }
-    td input:focus { border-color:#2ebf91; outline:none; }
-    tr { height:48px; }
-
-    .pass { background:rgba(100,255,100,0.3); }
-    .fail { background:rgba(255,100,100,0.3); }
+    td input:focus-visible {
+      border-color: #2ebf91;
+      outline: 2px solid #2ebf91;
+      outline-offset: 2px;
+    }
+    tr {
+      height: 48px;
+    }
+    .pass {
+      background: rgba(100, 255, 100, 0.3);
+    }
+    .fail {
+      background: rgba(255, 100, 100, 0.3);
+    }
 
     /* Buttons */
     .btn-container {
-      display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; margin-bottom:15px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 15px;
     }
-    .btn-container .left, .btn-container .right {
-      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    .btn-container .left,
+    .btn-container .right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
-    .btn-container label {
-      margin-left:4px; font-size:1rem;
+    .btn-container input[type="checkbox"] {
+      transform: scale(1.3);
+      cursor: pointer;
     }
-    .btn-container input[type="checkbox"] { transform:scale(1.3); }
     button {
-      flex:1 1 140px; padding:10px; font-size:1rem;
-      border:none; border-radius:6px; background:#2ebf91; color:#fff;
-      display:inline-flex; align-items:center; gap:6px; transition:background .2s;
+      flex: 1 1 140px;
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #2ebf91;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+      cursor: pointer;
+      user-select: none;
     }
-    button:hover { background:#239d77; }
-    button.reset { background:#e74c3c; }
+    button:hover {
+      background: #239d77;
+    }
+    button.reset {
+      background: #e74c3c;
+    }
+    button.reset:hover {
+      background: #c0392b;
+    }
 
     .remark {
-      text-align:center; font-size:1.1rem; font-weight:600;
-      margin-top:10px; padding:12px; border-radius:8px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      user-select: none;
     }
     .unique-message {
-      text-align:center; font-size:.95rem; font-style:italic;
-      margin-top:6px; color:#555;
+      text-align: center;
+      font-size: 0.95rem;
+      font-style: italic;
+      margin-top: 6px;
+      color: #555;
+      user-select: none;
     }
 
-    /* Confetti */
-    .confetti-piece {
-      position:fixed; width:8px; height:8px;
-      pointer-events:none; opacity:0.8;
-      animation:fall 2.5s linear forwards;
+    /* Year Overview */
+    .semester-overview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
     }
-    @keyframes fall {
-      0%   { transform:translateY(0) rotate(0deg); opacity:1; }
-      100% { transform:translateY(100vh) rotate(720deg); opacity:0; }
+    .semester-box {
+      flex: 1 1 200px;
+      padding: 15px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.3);
+      text-align: center;
+      user-select: none;
+    }
+    body.dark-mode .semester-box {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .year-total {
+      width: 100%;
+      padding: 15px;
+      border-radius: 8px;
+      background: rgba(46, 191, 145, 0.2);
+      text-align: center;
+      margin-top: 10px;
+      user-select: none;
+    }
+    body.dark-mode .year-total {
+      background: rgba(46, 191, 145, 0.3);
+    }
+
+    /* Visually hidden for screen readers */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
     }
 
     /* Mobile */
     @media (max-width: 480px) {
-      header h1 { font-size:1.4rem; }
-      .tab-btn, .toggle-btn, button {
-        font-size:.95rem; padding:10px; flex:1 1 100%;
+      header h1 {
+        font-size: 1.4rem;
       }
-      table { min-width:auto; }
-      th, td { padding:8px; font-size:.9rem; }
-      td input { padding:10px; font-size:1.1rem; }
-      tr { height:56px; }
-      .remark { font-size:1rem; padding:10px; }
-      .unique-message { font-size:.9rem; }
+      .tab-btn,
+      .toggle-btn,
+      button {
+        font-size: 0.95rem;
+        padding: 10px;
+        flex: 1 1 100%;
+      }
+      table {
+        min-width: auto;
+      }
+      th,
+      td {
+        padding: 8px;
+        font-size: 0.9rem;
+      }
+      td input {
+        padding: 10px;
+        font-size: 1.1rem;
+      }
+      tr {
+        height: 56px;
+      }
+      .remark {
+        font-size: 1rem;
+        padding: 10px;
+      }
+      .unique-message {
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
 <body class="light-mode">
-
   <div class="container">
     <header>
       <h1><i class="fa-solid fa-calculator"></i> Grades Calculator</h1>
-      <div class="toggles">
-        <button id="btnSem1" class="tab-btn active">S1</button>
-        <button id="btnSem2" class="tab-btn">S2</button>
-        <button id="themeToggle" class="toggle-btn">
+      <div class="toggles" role="tablist" aria-label="Semester and Year tabs">
+        <button id="btnSem1" class="tab-btn active" role="tab" aria-selected="true" aria-controls="sem1" tabindex="0">S1</button>
+        <button id="btnSem2" class="tab-btn" role="tab" aria-selected="false" aria-controls="sem2" tabindex="-1">S2</button>
+        <button id="btnYear" class="tab-btn" role="tab" aria-selected="false" aria-controls="year" tabindex="-1">Year</button>
+        <button id="themeToggle" class="toggle-btn" aria-pressed="false" title="Toggle dark mode">
           <i class="fa-solid fa-moon"></i> Dark Mode
         </button>
       </div>
     </header>
 
     <!-- Sem 1 -->
-    <div id="sem1">
+    <section id="sem1" role="tabpanel" aria-labelledby="btnSem1">
       <div class="table-wrap">
         <table>
-          <tr><th>Mod</th><th>Coef</th><th>TD</th><th>TP</th><th>EX</th><th>Avg</th></tr>
-          <tr><td>RP</td><td>3</td><td><input class="tdRP1"></td><td><input class="tpRP1"></td><td><input class="examRP1"></td><td class="avgRP1"></td></tr>
-          <tr><td>APG</td><td>3</td><td><input class="tdAPG1"></td><td><input class="tpAPG1"></td><td><input class="examAPG1"></td><td class="avgAPG1"></td></tr>
-          <tr><td>TI</td><td>2</td><td><input class="tdTI1"></td><td>—</td><td><input class="examTI1"></td><td class="avgTI1"></td></tr>
-          <tr><td>SR</td><td>2</td><td><input class="tdSR1"></td><td>—</td><td><input class="examSR1"></td><td class="avgSR1"></td></tr>
-          <tr><td>FED</td><td>2</td><td><input class="tdFED1"></td><td>—</td><td><input class="examFED1"></td><td class="avgFED1"></td></tr>
-          <tr><td>CRY</td><td>2</td><td><input class="tdCRYPTO1"></td><td>—</td><td><input class="examCRYPTO1"></td><td class="avgCRYPTO1"></td></tr>
-          <tr><td>ASII</td><td>2</td><td>—</td><td><input class="tpASII1"></td><td><input class="examASII1"></td><td class="avgASII1"></td></tr>
-          <tr><td>ANG</td><td>1</td><td>—</td><td>—</td><td><input class="examENG1"></td><td class="avgENG1"></td></tr>
-          <tr><td><strong>Ov</strong></td><td colspan="5" class="overall1"></td></tr>
+          <thead>
+            <tr>
+              <th scope="col">Mod</th>
+              <th scope="col">Coef</th>
+              <th scope="col">TD</th>
+              <th scope="col">TP</th>
+              <th scope="col">EX</th>
+              <th scope="col">Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>RP</td>
+              <td>3</td>
+              <td><label class="sr-only" for="tdRP1">TD RP Semester 1</label><input id="tdRP1" class="tdRP1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td><label class="sr-only" for="tpRP1">TP RP Semester 1</label><input id="tpRP1" class="tpRP1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td><label class="sr-only" for="examRP1">Exam RP Semester 1</label><input id="examRP1" class="examRP1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgRP1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>APG</td>
+              <td>3</td>
+              <td><label class="sr-only" for="tdAPG1">TD APG Semester 1</label><input id="tdAPG1" class="tdAPG1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td><label class="sr-only" for="tpAPG1">TP APG Semester 1</label><input id="tpAPG1" class="tpAPG1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td><label class="sr-only" for="examAPG1">Exam APG Semester 1</label><input id="examAPG1" class="examAPG1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgAPG1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>TI</td>
+              <td>2</td>
+              <td><label class="sr-only" for="tdTI1">TD TI Semester 1</label><input id="tdTI1" class="tdTI1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td>-</td>
+              <td><label class="sr-only" for="examTI1">Exam TI Semester 1</label><input id="examTI1" class="examTI1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgTI1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>SR</td>
+              <td>2</td>
+              <td><label class="sr-only" for="tdSR1">TD SR Semester 1</label><input id="tdSR1" class="tdSR1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td>-</td>
+              <td><label class="sr-only" for="examSR1">Exam SR Semester 1</label><input id="examSR1" class="examSR1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgSR1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>FED</td>
+              <td>2</td>
+              <td><label class="sr-only" for="tdFED1">TD FED Semester 1</label><input id="tdFED1" class="tdFED1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td>-</td>
+              <td><label class="sr-only" for="examFED1">Exam FED Semester 1</label><input id="examFED1" class="examFED1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgFED1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>CRY</td>
+              <td>2</td>
+              <td><label class="sr-only" for="tdCRYPTO1">TD CRYPTO Semester 1</label><input id="tdCRYPTO1" class="tdCRYPTO1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td>-</td>
+              <td><label class="sr-only" for="examCRYPTO1">Exam CRYPTO Semester 1</label><input id="examCRYPTO1" class="examCRYPTO1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgCRYPTO1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>ASII</td>
+              <td>2</td>
+              <td>-</td>
+              <td><label class="sr-only" for="tpASII1">TP ASII Semester 1</label><input id="tpASII1" class="tpASII1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td><label class="sr-only" for="examASII1">Exam ASII Semester 1</label><input id="examASII1" class="examASII1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgASII1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>ANG</td>
+              <td>1</td>
+              <td>-</td>
+              <td>-</td>
+              <td><label class="sr-only" for="examENG1">Exam ENG Semester 1</label><input id="examENG1" class="examENG1" type="text" inputmode="decimal" aria-describedby="msg1" /></td>
+              <td class="avgENG1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td><strong>Ov</strong></td>
+              <td colspan="5" class="overall1" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+          </tbody>
         </table>
       </div>
       <div class="btn-container">
         <div class="left">
-          <input type="checkbox" id="adj1">
+          <input type="checkbox" id="adj1" aria-label="Use adjusted weights for semester 1" />
           <label for="adj1">Adjusted Weights</label>
-          <span class="tooltip">🛈
-            <span class="tiptext">
-              Switches from 0.33 TD / 0.67 EX to precise 0.3333 / 0.6777 weighting.
-            </span>
-          </span>
         </div>
         <div class="right">
-          <button id="calc1"><i class="fa-solid fa-calculator"></i> Calc S1</button>
-          <button id="reset1" class="reset"><i class="fa-solid fa-rotate-left"></i> Reset S1</button>
+          <button id="calc1" aria-label="Calculate Semester 1 grades"><i class="fa-solid fa-calculator"></i> Calc S1</button>
+          <button id="reset1" class="reset" aria-label="Reset Semester 1 data"><i class="fa-solid fa-rotate-left"></i> Reset S1</button>
         </div>
       </div>
-      <div id="remark1" class="remark"></div>
-      <div id="msg1" class="unique-message"></div>
-    </div>
+      <div id="remark1" class="remark" aria-live="polite" aria-atomic="true"></div>
+      <div id="msg1" class="unique-message" role="alert" aria-live="assertive"></div>
+    </section>
 
     <!-- Sem 2 -->
-    <div id="sem2" style="display:none">
+    <section id="sem2" role="tabpanel" aria-labelledby="btnSem2" hidden>
       <div class="table-wrap">
         <table>
-          <tr><th>Mod</th><th>Coef</th><th>TD</th><th>TP</th><th>EX</th><th>Avg</th></tr>
-          <tr><td>ANG</td><td>1</td><td>—</td><td>—</td><td><input class="examAng2"></td><td class="avgAng2"></td></tr>
-          <tr><td>PS</td><td>2</td><td><input class="tdPS2"></td><td>—</td><td><input class="examPS2"></td><td class="avgPS2"></td></tr>
-          <tr><td>EV</td><td>3</td><td><input class="tdEV2"></td><td><input class="tpEV2"></td><td><input class="examEV2"></td><td class="avgEV2"></td></tr>
-          <tr><td>RT</td><td>2</td><td>—</td><td><input class="tpRT2"></td><td><input class="examRT2"></td><td class="avgRT2"></td></tr>
-          <tr><td>VULN</td><td>2</td><td>—</td><td><input class="tpVS2"></td><td><input class="examVS2"></td><td class="avgVS2"></td></tr>
-          <tr><td>BDR</td><td>2</td><td><input class="tdBD2"></td><td>—</td><td><input class="examBD2"></td><td class="avgBD2"></td></tr>
-          <tr><td>RFM</td><td>2</td><td>—</td><td><input class="tpRF2"></td><td><input class="examRF2"></td><td class="avgRF2"></td></tr>
-          <tr><td>RAV</td><td>3</td><td><input class="tdRA2"></td><td><input class="tpRA2"></td><td><input class="examRA2"></td><td class="avgRA2"></td></tr>
-          <tr><td><strong>Ov</strong></td><td colspan="5" class="overall2"></td></tr>
+          <thead>
+            <tr>
+              <th scope="col">Mod</th>
+              <th scope="col">Coef</th>
+              <th scope="col">TD</th>
+              <th scope="col">TP</th>
+              <th scope="col">EX</th>
+              <th scope="col">Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ANG</td>
+              <td>1</td>
+              <td>-</td>
+              <td>-</td>
+              <td><label class="sr-only" for="examAng2">Exam ANG Semester 2</label><input id="examAng2" class="examAng2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgAng2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>PS</td>
+              <td>2</td>
+              <td><label class="sr-only" for="tdPS2">TD PS Semester 2</label><input id="tdPS2" class="tdPS2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td>-</td>
+              <td><label class="sr-only" for="examPS2">Exam PS Semester 2</label><input id="examPS2" class="examPS2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgPS2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>EV</td>
+              <td>3</td>
+              <td><label class="sr-only" for="tdEV2">TD EV Semester 2</label><input id="tdEV2" class="tdEV2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td><label class="sr-only" for="tpEV2">TP EV Semester 2</label><input id="tpEV2" class="tpEV2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td><label class="sr-only" for="examEV2">Exam EV Semester 2</label><input id="examEV2" class="examEV2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgEV2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>RT</td>
+              <td>2</td>
+              <td>-</td>
+              <td><label class="sr-only" for="tpRT2">TP RT Semester 2</label><input id="tpRT2" class="tpRT2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td><label class="sr-only" for="examRT2">Exam RT Semester 2</label><input id="examRT2" class="examRT2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgRT2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>VS</td>
+              <td>2</td>
+              <td>-</td>
+              <td><label class="sr-only" for="tpVS2">TP VS Semester 2</label><input id="tpVS2" class="tpVS2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td><label class="sr-only" for="examVS2">Exam VS Semester 2</label><input id="examVS2" class="examVS2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgVS2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>BDR</td>
+              <td>2</td>
+              <td><label class="sr-only" for="tdBD2">TD BDR Semester 2</label><input id="tdBD2" class="tdBD2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td>-</td>
+              <td><label class="sr-only" for="examBD2">Exam BDR Semester 2</label><input id="examBD2" class="examBD2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgBD2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>RFM</td>
+              <td>2</td>
+              <td>-</td>
+              <td><label class="sr-only" for="tpRF2">TP RFM Semester 2</label><input id="tpRF2" class="tpRF2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td><label class="sr-only" for="examRF2">Exam RFM Semester 2</label><input id="examRF2" class="examRF2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgRF2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td>RAV</td>
+              <td>3</td>
+              <td><label class="sr-only" for="tdRA2">TD RAV Semester 2</label><input id="tdRA2" class="tdRA2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td><label class="sr-only" for="tpRA2">TP RAV Semester 2</label><input id="tpRA2" class="tpRA2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td><label class="sr-only" for="examRA2">Exam RAV Semester 2</label><input id="examRA2" class="examRA2" type="text" inputmode="decimal" aria-describedby="msg2" /></td>
+              <td class="avgRA2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+            <tr>
+              <td><strong>Ov</strong></td>
+              <td colspan="5" class="overall2" aria-live="polite" aria-atomic="true"></td>
+            </tr>
+          </tbody>
         </table>
       </div>
       <div class="btn-container">
         <div class="left">
-          <input type="checkbox" id="adj2">
+          <input type="checkbox" id="adj2" aria-label="Use adjusted weights for semester 2" />
           <label for="adj2">Adjusted Weights</label>
-          <span class="tooltip">🛈
-            <span class="tiptext">
-              Switches from 0.33 TD / 0.67 EX to precise 0.3333 / 0.6777 weighting.
-            </span>
-          </span>
         </div>
         <div class="right">
-          <button id="calc2"><i class="fa-solid fa-calculator"></i> Calc S2</button>
-          <button id="reset2" class="reset"><i class="fa-solid fa-rotate-left"></i> Reset S2</button>
+          <button id="calc2" aria-label="Calculate Semester 2 grades"><i class="fa-solid fa-calculator"></i> Calc S2</button>
+          <button id="reset2" class="reset" aria-label="Reset Semester 2 data"><i class="fa-solid fa-rotate-left"></i> Reset S2</button>
         </div>
       </div>
-      <div id="remark2" class="remark"></div>
-      <div id="msg2" class="unique-message"></div>
-    </div>
+      <div id="remark2" class="remark" aria-live="polite" aria-atomic="true"></div>
+      <div id="msg2" class="unique-message" role="alert" aria-live="assertive"></div>
+    </section>
+
+    <!-- Year Overview -->
+    <section id="year" role="tabpanel" aria-labelledby="btnYear" hidden>
+      <h3 style="text-align:center; margin-bottom: 15px;">Year Overview</h3>
+      <div class="semester-overview">
+        <div class="semester-box">
+          <h3>Semester 1</h3>
+          <p>Average: <strong id="year-sem1-avg">-</strong></p>
+          <p>Status: <span id="year-sem1-status">Not calculated</span></p>
+        </div>
+        <div class="semester-box">
+          <h3>Semester 2</h3>
+          <p>Average: <strong id="year-sem2-avg">-</strong></p>
+          <p>Status: <span id="year-sem2-status">Not calculated</span></p>
+        </div>
+        <div class="year-total">
+          <h3>Year Average</h3>
+          <p>Combined: <strong id="year-total-avg">-</strong></p>
+          <p>Status: <span id="year-total-status">Not calculated</span></p>
+        </div>
+      </div>
+      <div class="btn-container">
+        <div class="right" style="margin-left:auto;">
+          <button id="calcYear" aria-label="Calculate Year Average"><i class="fa-solid fa-calculator"></i> Calculate Year Average</button>
+        </div>
+      </div>
+    </section>
 
     <!-- Reset All -->
-    <button id="resetAll" class="reset" style="width:100%; margin-top:10px;">
+    <button id="resetAll" class="reset" style="width: 100%; margin-top: 10px;" aria-label="Reset all data">
       <i class="fa-solid fa-trash"></i> Reset All
     </button>
   </div>
@@ -222,104 +550,340 @@
   <div id="confettiContainer"></div>
 
   <script>
-    // Helpers
-    const safe = v=>{const n=parseFloat(v); return isNaN(n)?0:n;};
-    const colorCell = (c,v)=>{ c.classList.remove('pass','fail'); c.classList.add(v>=10?'pass':'fail'); };
+    // Elements
+    const sem1 = document.getElementById('sem1');
+    const sem2 = document.getElementById('sem2');
+    const yearSec = document.getElementById('year');
+    const btnSem1 = document.getElementById('btnSem1');
+    const btnSem2 = document.getElementById('btnSem2');
+    const btnYear = document.getElementById('btnYear');
+    const themeToggle = document.getElementById('themeToggle');
+    const resetAll = document.getElementById('resetAll');
+    const confettiContainer = document.getElementById('confettiContainer');
 
-    // Tabs
-    btnSem1.onclick=()=>{
-      sem1.style.display='block'; sem2.style.display='none';
-      btnSem1.classList.add('active'); btnSem2.classList.remove('active');
-    };
-    btnSem2.onclick=()=>{
-      sem2.style.display='block'; sem1.style.display='none';
-      btnSem2.classList.add('active'); btnSem1.classList.remove('active');
-    };
-
-    // Theme
-    themeToggle.onclick=()=>{
-      const isDark = document.body.classList.toggle('dark-mode');
-      document.body.classList.toggle('light-mode');
-      themeToggle.innerHTML = isDark
-        ? '<i class="fa-solid fa-sun"></i> Light Mode'
-        : '<i class="fa-solid fa-moon"></i> Dark Mode';
+    // Modules and coefficients
+    const semInfo = {
+      "1": { mods: ["RP","APG","TI","SR","FED","CRYPTO","ASII","ENG"], coefs: [3,3,2,2,2,2,2,1] },
+      "2": { mods: ["Ang","PS","EV","RT","VS","BD","RF","RA"], coefs: [1,2,3,2,2,2,2,3] }
     };
 
-    // Confetti
-    function launchConfetti(){
-      const C=document.getElementById('confettiContainer');
-      for(let i=0;i<40;i++){
-        const d=document.createElement('div');
-        d.className='confetti-piece';
-        d.style.background=`hsl(${Math.random()*360},80%,60%)`;
-        d.style.left=`${Math.random()*100}vw`;
-        C.appendChild(d);
-        setTimeout(()=>d.remove(),2500);
+    // State keys for localStorage
+    const STORAGE_KEY = 'gradesCalculatorState';
+
+    // Safe parse float with trim
+    function safe(v) {
+      if (!v) return 0;
+      const n = parseFloat(v.trim());
+      return isNaN(n) ? 0 : n;
+    }
+
+    // Color cell based on value >= 10 pass else fail
+    function colorCell(cell, val) {
+      cell.classList.remove('pass', 'fail');
+      if (val >= 10) {
+        cell.classList.add('pass');
+      } else {
+        cell.classList.add('fail');
       }
     }
 
-    // Bind semester calculators
-    function bindCalc(pref, mods, coefs){
-      document.getElementById('calc'+pref).onclick=()=>{
-        const useAdj=document.getElementById('adj'+pref).checked;
-        const wTD=useAdj?0.3333:0.33, wEX=useAdj?0.6777:0.67;
-        let tot=0,sum=0;
-        mods.forEach((m,i)=>{
-          const td=safe(document.querySelector('.td'+m+pref)?.value);
-          const tp=safe(document.querySelector('.tp'+m+pref)?.value);
-          const ex=safe(document.querySelector('.exam'+m+pref)?.value);
-          const base=(td+tp)>0?(td+tp)/2:td+tp;
-          const avg=base*wTD + ex*wEX;
-          const cell=document.querySelector('.avg'+m+pref);
-          cell.textContent=avg.toFixed(2);
-          colorCell(cell,avg);
-          tot+=avg*coefs[i]; sum+=coefs[i];
-        });
-        const overall=tot/sum;
-        const ov=document.querySelector('.overall'+pref);
-        ov.textContent=overall.toFixed(2);
-        colorCell(ov,overall);
+    // Confetti launch with cooldown
+    let confettiCooldown = false;
+    function launchConfetti() {
+      if (confettiCooldown) return;
+      confettiCooldown = true;
+      for (let i = 0; i < 40; i++) {
+        const d = document.createElement('div');
+        d.className = 'confetti-piece';
+        d.style.background = `hsl(${Math.random() * 360}, 80%, 60%)`;
+        d.style.left = `${Math.random() * 100}vw`;
+        confettiContainer.appendChild(d);
+        setTimeout(() => d.remove(), 2500);
+      }
+      setTimeout(() => { confettiCooldown = false; }, 3000);
+    }
 
-        const R=document.getElementById('remark'+pref),
-              M=document.getElementById('msg'+pref);
-        if(overall>=10){
-          R.textContent=`Sem ${pref} Passed 🎉`; R.style.background='rgba(100,255,100,0.3)';
-          M.textContent='Great job! Keep it up.'; launchConfetti();
-        } else {
-          R.textContent=`Sem ${pref} Needs Work 😅`; R.style.background='rgba(255,100,100,0.3)';
-          M.textContent='';
+    // Save state to localStorage
+    function saveState() {
+      const state = {
+        theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',
+        activeTab,
+        semesters: {
+          "1": {},
+          "2": {}
         }
       };
+      // Save inputs and checkbox states for semesters
+      ["1", "2"].forEach(pref => {
+        semInfo[pref].mods.forEach(m => {
+          ['td', 'tp', 'exam'].forEach(type => {
+            const el = document.querySelector(`.${type}${m}${pref}`);
+            if (el) state.semesters[pref][`${type}${m}`] = el.value;
+          });
+        });
+        const adj = document.getElementById(`adj${pref}`);
+        if (adj) state.semesters[pref].adjusted = adj.checked;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
 
-      document.getElementById('reset'+pref).onclick=()=>{
-        document.querySelectorAll(`#sem${pref} input`).forEach(i=>i.value='');
-        document.querySelectorAll(`#sem${pref} .pass,#sem${pref} .fail`)
-          .forEach(c=>c.classList.remove('pass','fail'));
-        document.querySelector(`.overall${pref}`).textContent='';
-        const R=document.getElementById('remark'+pref),
-              M=document.getElementById('msg'+pref);
-        R.textContent=''; R.style.background='none';
-        M.textContent='';
-        document.getElementById('adj'+pref).checked=false;
+    // Load state from localStorage
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const state = JSON.parse(saved);
+        if (state.theme === 'dark') {
+          document.body.classList.add('dark-mode');
+          document.body.classList.remove('light-mode');
+          updateThemeToggle();
+        } else {
+          document.body.classList.add('light-mode');
+          document.body.classList.remove('dark-mode');
+          updateThemeToggle();
+        }
+        if (state.activeTab) {
+          switchTab(state.activeTab);
+        }
+        if (state.semesters) {
+          ["1", "2"].forEach(pref => {
+            if (state.semesters[pref]) {
+              semInfo[pref].mods.forEach(m => {
+                ['td', 'tp', 'exam'].forEach(type => {
+                  const val = state.semesters[pref][`${type}${m}`];
+                  const el = document.querySelector(`.${type}${m}${pref}`);
+                  if (el && val !== undefined) el.value = val;
+                });
+              });
+              const adj = document.getElementById(`adj${pref}`);
+              if (adj && state.semesters[pref].adjusted !== undefined) {
+                adj.checked = state.semesters[pref].adjusted;
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to load saved state", e);
+      }
+    }
+
+    // Tab switching
+    let activeTab = 'btnSem1';
+    function switchTab(tabId) {
+      activeTab = tabId;
+      [sem1, sem2, yearSec].forEach(sec => {
+        sec.hidden = true;
+      });
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+        b.setAttribute('tabindex', '-1');
+      });
+
+      if (tabId === 'btnSem1') {
+        sem1.hidden = false;
+      } else if (tabId === 'btnSem2') {
+        sem2.hidden = false;
+      } else if (tabId === 'btnYear') {
+        yearSec.hidden = false;
+      }
+
+      const btn = document.getElementById(tabId);
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      btn.setAttribute('tabindex', '0');
+      document.body.classList.toggle('year-view', tabId === 'btnYear');
+      saveState();
+    }
+    [btnSem1, btnSem2, btnYear].forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.id));
+    });
+
+    // Theme toggle
+    function updateThemeToggle() {
+      const isDark = document.body.classList.contains('dark-mode');
+      themeToggle.innerHTML = isDark
+        ? '<i class="fa-solid fa-sun"></i> Light Mode'
+        : '<i class="fa-solid fa-moon"></i> Dark Mode';
+      themeToggle.setAttribute('aria-pressed', isDark.toString());
+      localStorage.setItem('darkMode', isDark);
+    }
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      document.body.classList.toggle('light-mode');
+      updateThemeToggle();
+      saveState();
+    });
+
+    // Validate inputs: grades 0-20 or empty
+    function validateGrade(value) {
+      if (value === '') return true;
+      const n = parseFloat(value);
+      return !isNaN(n) && n >= 0 && n <= 20;
+    }
+
+    // Bind calculation and reset for a semester
+    function bindCalc(pref) {
+      document.getElementById('calc' + pref).onclick = () => {
+        const useAdj = document.getElementById('adj' + pref).checked;
+        const wTD = useAdj ? 0.3333 : 0.33, wEX = useAdj ? 0.6777 : 0.67;
+        let tot = 0, sum = 0;
+        const msg = document.getElementById('msg' + pref);
+        msg.textContent = '';
+
+        // Validate all inputs first
+        for (const m of semInfo[pref].mods) {
+          const tdInput = document.querySelector(`.td${m}${pref}`);
+          const tpInput = document.querySelector(`.tp${m}${pref}`);
+          const exInput = document.querySelector(`.exam${m}${pref}`);
+
+          if (tdInput && !validateGrade(tdInput.value)) {
+            msg.textContent = `Invalid TD grade for ${m} in semester ${pref}. Must be 0-20 or empty.`;
+            tdInput.focus();
+            return;
+          }
+          if (tpInput && !validateGrade(tpInput.value)) {
+            msg.textContent = `Invalid TP grade for ${m} in semester ${pref}. Must be 0-20 or empty.`;
+            tpInput.focus();
+            return;
+          }
+          if (exInput && !validateGrade(exInput.value)) {
+            msg.textContent = `Invalid Exam grade for ${m} in semester ${pref}. Must be 0-20 or empty.`;
+            exInput.focus();
+            return;
+          }
+        }
+
+        for (let i = 0; i < semInfo[pref].mods.length; i++) {
+          const m = semInfo[pref].mods[i];
+          const td = safe(document.querySelector(`.td${m}${pref}`)?.value);
+          const tp = safe(document.querySelector(`.tp${m}${pref}`)?.value);
+          const ex = safe(document.querySelector(`.exam${m}${pref}`)?.value);
+
+          // Calculate base as average of TD and TP if both present, else sum
+          const base = (td > 0 && tp > 0) ? (td + tp) / 2 : td + tp;
+          const avg = base * wTD + ex * wEX;
+
+          const cell = document.querySelector(`.avg${m}${pref}`);
+          cell.textContent = avg.toFixed(2);
+          colorCell(cell, avg);
+
+          tot += avg * semInfo[pref].coefs[i];
+          sum += semInfo[pref].coefs[i];
+        }
+
+        const overall = tot / sum;
+        const ov = document.querySelector(`.overall${pref}`);
+        ov.textContent = overall.toFixed(2);
+        colorCell(ov, overall);
+
+        const R = document.getElementById('remark' + pref);
+        if (overall >= 10) {
+          R.textContent = `Sem ${pref} Passed 🎉`;
+          R.style.background = 'rgba(100,255,100,0.3)';
+          launchConfetti();
+        } else {
+          R.textContent = `Sem ${pref} Needs Work 😅`;
+          R.style.background = 'rgba(255,100,100,0.3)';
+        }
+        saveState();
+      };
+
+      document.getElementById('reset' + pref).onclick = () => {
+        if (confirm(`Reset semester ${pref} data?`)) {
+          document.querySelectorAll(`#sem${pref} input`).forEach(i => i.value = '');
+          document.querySelectorAll(`#sem${pref} .pass, #sem${pref} .fail`).forEach(c => c.classList.remove('pass', 'fail'));
+          document.querySelector(`.overall${pref}`).textContent = '';
+          const remark = document.getElementById('remark' + pref);
+          remark.textContent = '';
+          remark.style.background = '';
+          document.getElementById('adj' + pref).checked = false;
+          document.getElementById('msg' + pref).textContent = '';
+          saveState();
+        }
       };
     }
 
-    bindCalc('1',['RP','APG','TI','SR','FED','CRYPTO','ASII','ENG'],[3,3,2,2,2,2,2,1]);
-    bindCalc('2',['Ang','PS','EV','RT','VS','BD','RF','RA'],[1,2,3,2,2,2,2,3]);
+    // Calculate year average
+    document.getElementById('calcYear').onclick = () => {
+      const avg1Text = document.querySelector('.overall1').textContent;
+      const avg2Text = document.querySelector('.overall2').textContent;
+      const avg1 = parseFloat(avg1Text);
+      const avg2 = parseFloat(avg2Text);
 
-    // Reset All
-    resetAll.onclick=()=>{
-      ['1','2'].forEach(pref=>{
-        document.querySelectorAll(`#sem${pref} input`).forEach(i=>i.value='');
-        document.querySelectorAll(`#sem${pref} .pass,#sem${pref} .fail`)
-          .forEach(c=>c.classList.remove('pass','fail'));
-        const ov=document.querySelector('.overall'+pref),
-              R=document.getElementById('remark'+pref),
-              M=document.getElementById('msg'+pref);
-        ov.textContent=''; R.textContent=''; R.style.background='none'; M.textContent='';
-        document.getElementById('adj'+pref).checked=false;
-      });
+      const sem1AvgElem = document.getElementById('year-sem1-avg');
+      const sem2AvgElem = document.getElementById('year-sem2-avg');
+      const sem1StatusElem = document.getElementById('year-sem1-status');
+      const sem2StatusElem = document.getElementById('year-sem2-status');
+      const totalAvgElem = document.getElementById('year-total-avg');
+      const totalStatusElem = document.getElementById('year-total-status');
+
+      if (isNaN(avg1)) {
+        sem1AvgElem.textContent = '-';
+        sem1StatusElem.textContent = 'Not calculated';
+      } else {
+        sem1AvgElem.textContent = avg1.toFixed(2);
+        sem1StatusElem.textContent = avg1 >= 10 ? 'Passed' : 'Needs Work';
+        sem1StatusElem.className = avg1 >= 10 ? 'status-pass' : 'status-fail';
+      }
+
+      if (isNaN(avg2)) {
+        sem2AvgElem.textContent = '-';
+        sem2StatusElem.textContent = 'Not calculated';
+      } else {
+        sem2AvgElem.textContent = avg2.toFixed(2);
+        sem2StatusElem.textContent = avg2 >= 10 ? 'Passed' : 'Needs Work';
+        sem2StatusElem.className = avg2 >= 10 ? 'status-pass' : 'status-fail';
+      }
+
+      if (!isNaN(avg1) && !isNaN(avg2)) {
+        const combined = (avg1 + avg2) / 2;
+        totalAvgElem.textContent = combined.toFixed(2);
+        totalStatusElem.textContent = combined >= 10 ? 'Passed' : 'Needs Work';
+        totalStatusElem.className = combined >= 10 ? 'status-pass' : 'status-fail';
+        if (combined >= 10) {
+          launchConfetti();
+        }
+      } else {
+        totalAvgElem.textContent = '-';
+        totalStatusElem.textContent = 'Not calculated';
+        totalStatusElem.className = '';
+      }
+      saveState();
     };
+
+    // Reset all data
+    resetAll.onclick = () => {
+      if (confirm('Reset all data?')) {
+        document.querySelectorAll('input[type="text"]').forEach(i => i.value = '');
+        document.querySelectorAll('.pass, .fail').forEach(c => c.classList.remove('pass', 'fail'));
+        document.querySelectorAll('.overall1, .overall2').forEach(e => e.textContent = '');
+        document.getElementById('remark1').textContent = '';
+        document.getElementById('remark1').style.background = '';
+        document.getElementById('remark2').textContent = '';
+        document.getElementById('remark2').style.background = '';
+        document.getElementById('adj1').checked = false;
+        document.getElementById('adj2').checked = false;
+        document.getElementById('msg1').textContent = '';
+        document.getElementById('msg2').textContent = '';
+        document.getElementById('year-sem1-avg').textContent = '-';
+        document.getElementById('year-sem2-avg').textContent = '-';
+        document.getElementById('year-sem1-status').textContent = 'Not calculated';
+        document.getElementById('year-sem2-status').textContent = 'Not calculated';
+        document.getElementById('year-total-avg').textContent = '-';
+        document.getElementById('year-total-status').textContent = 'Not calculated';
+        saveState();
+      }
+    };
+
+    // Initialize bindings
+    bindCalc("1");
+    bindCalc("2");
+
+    // Load saved state on page load
+    window.addEventListener('load', () => {
+      loadState();
+    });
   </script>
 </body>
 </html>
