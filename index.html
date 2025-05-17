@@ -280,15 +280,20 @@
       }
       th,
       td {
-        padding: 8px;
-        font-size: 0.9rem;
+        padding: 6px; /* Reduce padding */
+        font-size: 0.85rem; /* Smaller font size */
       }
       td input {
-        padding: 10px;
-        font-size: 1.1rem;
+        padding: 6px; /* Reduce padding */
+        font-size: 1rem; /* Slightly smaller font size */
+        width: 100%; /* Ensure inputs take full width */
       }
-      tr {
-        height: 56px;
+      td[class^="avg"], td[class*="avg"] {
+        font-size: 1rem; /* Slightly larger font size for averages */
+        word-wrap: break-word; /* Prevent overflow */
+      }
+      .overall1, .overall2 {
+        font-size: 1rem; /* Ensure visibility of overall averages */
       }
       .remark {
         font-size: 1rem;
