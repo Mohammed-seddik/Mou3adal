@@ -765,10 +765,14 @@
           const tp = safe(document.querySelector(`.tp${m}${pref}`)?.value);
           const ex = safe(document.querySelector(`.exam${m}${pref}`)?.value);
 
-          // Calculate base as average of TD and TP if both present, else sum
-          const base = (td > 0 && tp > 0) ? (td + tp) / 2 : td + tp;
-          const avg = base * wTD + ex * wEX;
-
+          // Calculate base as average of TD 
+let avg;
+if ((m === "ENG" && pref === "1") || (m === "Ang" && pref === "2")) {
+    avg = ex; // Only the exam counts for English
+} else {
+    const base = (td > 0 && tp > 0) ? (td + tp) / 2 : td + tp;
+    avg = base * wTD + ex * wEX;
+}
           const cell = document.querySelector(`.avg${m}${pref}`);
           cell.textContent = avg.toFixed(2);
           colorCell(cell, avg);
